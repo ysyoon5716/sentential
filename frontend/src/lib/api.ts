@@ -49,6 +49,12 @@ export async function getRecentSentences(): Promise<Sentence[]> {
   return res.json();
 }
 
+export async function getRandomSentence(): Promise<Sentence> {
+  const res = await apiFetch("/api/sentences/random");
+  if (!res.ok) throw new Error("Random fetch failed");
+  return res.json();
+}
+
 export async function searchSentences(query: string): Promise<Sentence[]> {
   const res = await apiFetch(
     `/api/sentences/search?q=${encodeURIComponent(query)}`

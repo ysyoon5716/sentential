@@ -37,6 +37,18 @@ async def list_recent_sentences(limit: int = 20, db: AsyncSession = Depends(get_
     return result.scalars().all()
 
 
+@router.get("/random", response_model=SentenceResponse)
+async def get_random_sentence(db: AsyncSession = Depends(get_db)):
+    stmt = text(
+        "SELECT id, content, created_at, updated_at FROM sentences ORDER BY RANDOM() LIMIT 1"
+    )
+    result = await db.execute(stmt)
+    row = result.mappings().first()
+    if not row:
+        raise HTTPException(status_code=404, detail="No sentences found")
+    return SentenceResponse(**row)
+
+
 @router.get("/search", response_model=list[SentenceSearchResult])
 async def search_sentences(q: str, limit: int = 20, db: AsyncSession = Depends(get_db)):
     if not q.strip():

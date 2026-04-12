@@ -2,8 +2,10 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Sentence, searchSentences, searchSimilarSentences, createSentence, getRecentSentences, checkAuth, logout } from "@/lib/api";
+import { Sentence, searchSentences, searchSimilarSentences, createSentence, getRecentSentences, getRandomSentence, checkAuth, logout } from "@/lib/api";
 import SentenceCard from "@/components/SentenceCard";
+import { GiPerspectiveDiceSixFacesRandom } from "react-icons/gi";
+import { HiArrowUpTray } from "react-icons/hi2";
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -93,6 +95,20 @@ export default function Home() {
     }
   }
 
+  async function handleRandom() {
+    setLoading(true);
+    setMessage("");
+    try {
+      const data = await getRandomSentence();
+      setResults([data]);
+      setSearched(true);
+    } catch {
+      setMessage("랜덤 검색 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleLogout() {
     await logout();
     router.push("/login");
@@ -130,11 +146,20 @@ export default function Home() {
             autoFocus
           />
           <button
+            onClick={handleRandom}
+            disabled={loading}
+            className="px-3 py-3 border border-neutral-700 rounded-lg text-neutral-400 hover:text-white hover:border-neutral-400 transition-colors disabled:opacity-30 shrink-0"
+            title="랜덤 검색"
+          >
+            <GiPerspectiveDiceSixFacesRandom className="w-5 h-5" />
+          </button>
+          <button
             onClick={handleSave}
             disabled={saving || !query.trim()}
-            className="px-4 py-3 border border-neutral-700 rounded-lg text-neutral-400 hover:text-white hover:border-neutral-400 transition-colors disabled:opacity-30 shrink-0"
+            className="px-3 py-3 border border-neutral-700 rounded-lg text-neutral-400 hover:text-white hover:border-neutral-400 transition-colors disabled:opacity-30 shrink-0"
+            title="저장"
           >
-            {saving ? "..." : "저장"}
+            <HiArrowUpTray className="w-5 h-5" />
           </button>
         </div>
 
