@@ -1,8 +1,4 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== "undefined" && window.location.hostname !== "localhost"
-    ? `https://api-${window.location.hostname}`
-    : "http://localhost:8000");
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface Sentence {
   id: number;
