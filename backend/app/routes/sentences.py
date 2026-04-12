@@ -58,6 +58,27 @@ async def search_sentences(q: str, limit: int = 20, db: AsyncSession = Depends(g
     return [SentenceSearchResult(**row) for row in rows]
 
 
+@router.get("/{sentence_id}/similar", response_model=list[SentenceSearchResult])
+async def search_similar_sentences(
+    sentence_id: int, limit: int = 20, db: AsyncSession = Depends(get_db)
+):
+    sentence = await db.get(Sentence, sentence_id)
+    if not sentence:
+        raise HTTPException(status_code=404, detail="Sentence not found")
+
+    stmt = text("""
+        SELECT id, content, created_at, updated_at,
+               1 - (embedding <=> (SELECT embedding FROM sentences WHERE id = :sentence_id)) AS similarity
+        FROM sentences
+        ORDER BY embedding <=> (SELECT embedding FROM sentences WHERE id = :sentence_id)
+        LIMIT :limit
+    """)
+
+    result = await db.execute(stmt, {"sentence_id": sentence_id, "limit": limit})
+    rows = result.mappings().all()
+    return [SentenceSearchResult(**row) for row in rows]
+
+
 @router.put("/{sentence_id}", response_model=SentenceResponse)
 async def update_sentence(
     sentence_id: int, body: SentenceUpdate, db: AsyncSession = Depends(get_db)

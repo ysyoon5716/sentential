@@ -57,6 +57,12 @@ export async function searchSentences(query: string): Promise<Sentence[]> {
   return res.json();
 }
 
+export async function searchSimilarSentences(id: number): Promise<Sentence[]> {
+  const res = await apiFetch(`/api/sentences/${id}/similar`);
+  if (!res.ok) throw new Error("Similar search failed");
+  return res.json();
+}
+
 export async function createSentence(content: string): Promise<Sentence> {
   const res = await apiFetch("/api/sentences", {
     method: "POST",

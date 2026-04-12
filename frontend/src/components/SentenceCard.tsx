@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { HiPencilSquare, HiTrash } from "react-icons/hi2";
 import { Sentence, updateSentence, deleteSentence } from "@/lib/api";
+import RenderedContent from "./RenderedContent";
 
 interface Props {
   sentence: Sentence;
   onUpdate: () => void;
+  onClickContent?: (id: number, content: string) => void;
 }
 
-export default function SentenceCard({ sentence, onUpdate }: Props) {
+export default function SentenceCard({ sentence, onUpdate, onClickContent }: Props) {
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(sentence.content);
   const [loading, setLoading] = useState(false);
@@ -62,20 +65,24 @@ export default function SentenceCard({ sentence, onUpdate }: Props) {
         </div>
       ) : (
         <div className="flex justify-between items-start gap-4">
-          <p className="text-white flex-1">{sentence.content}</p>
+          <RenderedContent
+            content={sentence.content}
+            className={`text-white flex-1${onClickContent ? " cursor-pointer hover:text-neutral-300 transition-colors" : ""}`}
+            onClick={onClickContent ? () => onClickContent(sentence.id, sentence.content) : undefined}
+          />
           <div className="flex gap-2 shrink-0">
             <button
               onClick={() => setEditing(true)}
-              className="text-sm text-neutral-500 hover:text-white transition-colors"
+              className="text-neutral-500 hover:text-white transition-colors"
             >
-              수정
+              <HiPencilSquare className="w-4 h-4" />
             </button>
             <button
               onClick={handleDelete}
               disabled={loading}
-              className="text-sm text-neutral-500 hover:text-red-400 transition-colors disabled:opacity-50"
+              className="text-neutral-500 hover:text-red-400 transition-colors disabled:opacity-50"
             >
-              삭제
+              <HiTrash className="w-4 h-4" />
             </button>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Sentence, searchSentences, createSentence, getRecentSentences, checkAuth, logout } from "@/lib/api";
+import { Sentence, searchSentences, searchSimilarSentences, createSentence, getRecentSentences, checkAuth, logout } from "@/lib/api";
 import SentenceCard from "@/components/SentenceCard";
 
 export default function Home() {
@@ -50,6 +50,21 @@ export default function Home() {
       setLoading(false);
     }
   }, [query]);
+
+  const handleClickSentence = useCallback(async (id: number, content: string) => {
+    setQuery(content);
+    setLoading(true);
+    setMessage("");
+    try {
+      const data = await searchSimilarSentences(id);
+      setResults(data);
+      setSearched(true);
+    } catch {
+      setMessage("검색 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   async function handleSave() {
     if (!query.trim()) return;
@@ -143,6 +158,7 @@ export default function Home() {
                   key={s.id}
                   sentence={s}
                   onUpdate={handleSearch}
+                  onClickContent={handleClickSentence}
                 />
               ))
             )}
@@ -162,6 +178,7 @@ export default function Home() {
                   key={s.id}
                   sentence={s}
                   onUpdate={loadRecent}
+                  onClickContent={handleClickSentence}
                 />
               ))
             )}
