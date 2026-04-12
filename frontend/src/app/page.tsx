@@ -85,7 +85,6 @@ export default function Home() {
     setMessage("");
     try {
       await createSentence(q);
-      setMessage("저장되었습니다.");
       setQuery("");
       if (searched) {
         const data = await searchSentences(q);
@@ -191,10 +190,6 @@ export default function Home() {
 
         {message && (
           <p className="text-sm text-neutral-500 mt-3">{message}</p>
-        )}
-
-        {loading && (
-          <p className="text-sm text-neutral-600 mt-6">검색 중...</p>
         )}
 
         {searched && searchedQuery && !loading && (
