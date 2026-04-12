@@ -82,6 +82,7 @@ async def search_similar_sentences(
         SELECT id, content, created_at, updated_at,
                1 - (embedding <=> (SELECT embedding FROM sentences WHERE id = :sentence_id)) AS similarity
         FROM sentences
+        WHERE id != :sentence_id
         ORDER BY embedding <=> (SELECT embedding FROM sentences WHERE id = :sentence_id)
         LIMIT :limit
     """)
