@@ -6,7 +6,7 @@ import { Sentence, searchSentences, searchSimilarSentences, createSentence, getR
 import SentenceCard from "@/components/SentenceCard";
 import RenderedContent from "@/components/RenderedContent";
 import { GiPerspectiveDiceSixFacesRandom } from "react-icons/gi";
-import { HiArrowUpTray } from "react-icons/hi2";
+import { HiArrowUpTray, HiClipboardDocument, HiClipboardDocumentCheck } from "react-icons/hi2";
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -17,6 +17,8 @@ export default function Home() {
   const [saving, setSaving] = useState(false);
   const [searchedQuery, setSearchedQuery] = useState("");
   const [message, setMessage] = useState("");
+  const [selectedSentence, setSelectedSentence] = useState<Sentence | null>(null);
+  const [copiedQuery, setCopiedQuery] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const router = useRouter();
 
@@ -50,6 +52,7 @@ export default function Home() {
       setResults(data);
       setSearched(true);
       setSearchedQuery(q);
+      setSelectedSentence(null);
       setQuery("");
     } catch {
       setMessage("검색 중 오류가 발생했습니다.");
@@ -67,6 +70,7 @@ export default function Home() {
       setResults(data);
       setSearched(true);
       setSearchedQuery(content);
+      setSelectedSentence({ id, content, created_at: "", updated_at: "" });
     } catch {
       setMessage("검색 중 오류가 발생했습니다.");
     } finally {
@@ -111,6 +115,7 @@ export default function Home() {
       setResults(similar);
       setSearched(true);
       setSearchedQuery(data.content);
+      setSelectedSentence(data);
       setQuery("");
     } catch {
       setMessage("랜덤 검색 중 오류가 발생했습니다.");
@@ -182,11 +187,43 @@ export default function Home() {
         )}
 
         {searched && searchedQuery && !loading && (
-          <div className="w-full mt-5 pb-4 border-b border-neutral-800">
-            <RenderedContent
-              content={searchedQuery}
-              className="text-neutral-300"
-            />
+          <div className="w-full mt-5">
+            {selectedSentence ? (
+              <SentenceCard
+                sentence={selectedSentence}
+                onUpdate={() => {
+                  setSelectedSentence(null);
+                  setSearched(false);
+                  setSearchedQuery("");
+                  loadRecent();
+                }}
+              />
+            ) : (
+              <div className="border border-neutral-800 rounded-lg p-4 hover:border-neutral-600 transition-colors">
+                <div className="flex justify-between items-start gap-4">
+                  <RenderedContent
+                    content={searchedQuery}
+                    className="text-white flex-1"
+                  />
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(searchedQuery);
+                        setCopiedQuery(true);
+                        setTimeout(() => setCopiedQuery(false), 1500);
+                      }}
+                      className="text-neutral-500 hover:text-white transition-colors"
+                    >
+                      {copiedQuery ? (
+                        <HiClipboardDocumentCheck className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <HiClipboardDocument className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -201,7 +238,13 @@ export default function Home() {
                 <SentenceCard
                   key={s.id}
                   sentence={s}
-                  onUpdate={() => { if (searchedQuery) { searchSentences(searchedQuery).then(setResults); } }}
+                  onUpdate={() => {
+                    if (selectedSentence) {
+                      searchSimilarSentences(selectedSentence.id).then(setResults).catch(() => {});
+                    } else if (searchedQuery) {
+                      searchSentences(searchedQuery).then(setResults);
+                    }
+                  }}
                   onClickContent={handleClickSentence}
                 />
               ))
