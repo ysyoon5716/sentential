@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Sentence, searchSentences, createSentence, getRecentSentences } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { Sentence, searchSentences, createSentence, getRecentSentences, checkAuth, logout } from "@/lib/api";
 import SentenceCard from "@/components/SentenceCard";
 
 export default function Home() {
@@ -12,6 +13,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [authChecked, setAuthChecked] = useState(false);
+  const router = useRouter();
 
   const loadRecent = useCallback(async () => {
     try {
@@ -23,8 +26,15 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    loadRecent();
-  }, [loadRecent]);
+    checkAuth().then((ok) => {
+      if (!ok) {
+        router.push("/login");
+      } else {
+        setAuthChecked(true);
+        loadRecent();
+      }
+    });
+  }, [loadRecent, router]);
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return;
@@ -68,16 +78,31 @@ export default function Home() {
     }
   }
 
+  async function handleLogout() {
+    await logout();
+    router.push("/login");
+  }
+
+  if (!authChecked) {
+    return null;
+  }
+
   return (
     <main className="flex-1 flex flex-col items-center px-4">
       <div
         className="w-full max-w-2xl flex flex-col items-center pt-8"
       >
-        <h1
-          className="font-bold tracking-tight text-2xl mb-6"
-        >
-          Sentential
-        </h1>
+        <div className="w-full flex justify-between items-center mb-6">
+          <h1 className="font-bold tracking-tight text-2xl">
+            Sentential
+          </h1>
+          <button
+            onClick={handleLogout}
+            className="text-sm text-neutral-500 hover:text-neutral-300 transition-colors"
+          >
+            로그아웃
+          </button>
+        </div>
 
         <div className="w-full flex gap-2">
           <input

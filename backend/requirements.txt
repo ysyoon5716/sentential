@@ -5,3 +5,5 @@ asyncpg==0.30.0
 pgvector==0.3.6
 voyageai==0.3.2
 pydantic==2.10.3
+bcrypt==4.2.1
+pyjwt==2.10.1

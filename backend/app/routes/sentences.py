@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth import get_current_user
 from app.database import get_db
 from app.models import Sentence
 from app.schemas import (
@@ -12,7 +13,11 @@ from app.schemas import (
 )
 from app.services.embedding import get_embedding, get_query_embedding
 
-router = APIRouter(prefix="/api/sentences", tags=["sentences"])
+router = APIRouter(
+    prefix="/api/sentences",
+    tags=["sentences"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.post("", response_model=SentenceResponse, status_code=201)
