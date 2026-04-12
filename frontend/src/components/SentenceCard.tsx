@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { HiPencilSquare, HiTrash } from "react-icons/hi2";
+import { HiPencilSquare, HiTrash, HiClipboardDocument, HiClipboardDocumentCheck } from "react-icons/hi2";
 import { Sentence, updateSentence, deleteSentence } from "@/lib/api";
 import RenderedContent from "./RenderedContent";
 
@@ -15,6 +15,13 @@ export default function SentenceCard({ sentence, onUpdate, onClickContent }: Pro
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(sentence.content);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(sentence.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
 
   async function handleSave() {
     setLoading(true);
@@ -71,6 +78,16 @@ export default function SentenceCard({ sentence, onUpdate, onClickContent }: Pro
             onClick={onClickContent ? () => onClickContent(sentence.id, sentence.content) : undefined}
           />
           <div className="flex gap-2 shrink-0">
+            <button
+              onClick={handleCopy}
+              className="text-neutral-500 hover:text-white transition-colors"
+            >
+              {copied ? (
+                <HiClipboardDocumentCheck className="w-4 h-4 text-green-400" />
+              ) : (
+                <HiClipboardDocument className="w-4 h-4" />
+              )}
+            </button>
             <button
               onClick={() => setEditing(true)}
               className="text-neutral-500 hover:text-white transition-colors"
