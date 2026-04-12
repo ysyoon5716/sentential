@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Sentence, searchSentences, searchSimilarSentences, createSentence, getRecentSentences, getRandomSentence, checkAuth, logout } from "@/lib/api";
 import SentenceCard from "@/components/SentenceCard";
+import RenderedContent from "@/components/RenderedContent";
 import { GiPerspectiveDiceSixFacesRandom } from "react-icons/gi";
 import { HiArrowUpTray } from "react-icons/hi2";
 
@@ -14,6 +15,7 @@ export default function Home() {
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [searchedQuery, setSearchedQuery] = useState("");
   const [message, setMessage] = useState("");
   const [authChecked, setAuthChecked] = useState(false);
   const router = useRouter();
@@ -40,12 +42,15 @@ export default function Home() {
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return;
+    const q = query.trim();
     setLoading(true);
     setMessage("");
     try {
-      const data = await searchSentences(query);
+      const data = await searchSentences(q);
       setResults(data);
       setSearched(true);
+      setSearchedQuery(q);
+      setQuery("");
     } catch {
       setMessage("검색 중 오류가 발생했습니다.");
     } finally {
@@ -54,13 +59,14 @@ export default function Home() {
   }, [query]);
 
   const handleClickSentence = useCallback(async (id: number, content: string) => {
-    setQuery(content);
+    setQuery("");
     setLoading(true);
     setMessage("");
     try {
       const data = await searchSimilarSentences(id);
       setResults(data);
       setSearched(true);
+      setSearchedQuery(content);
     } catch {
       setMessage("검색 중 오류가 발생했습니다.");
     } finally {
@@ -70,14 +76,15 @@ export default function Home() {
 
   async function handleSave() {
     if (!query.trim()) return;
+    const q = query.trim();
     setSaving(true);
     setMessage("");
     try {
-      await createSentence(query.trim());
+      await createSentence(q);
       setMessage("저장되었습니다.");
       setQuery("");
       if (searched) {
-        const data = await searchSentences(query);
+        const data = await searchSentences(q);
         setResults(data);
       }
       loadRecent();
@@ -102,6 +109,8 @@ export default function Home() {
       const data = await getRandomSentence();
       setResults([data]);
       setSearched(true);
+      setSearchedQuery(data.content);
+      setQuery("");
     } catch {
       setMessage("랜덤 검색 중 오류가 발생했습니다.");
     } finally {
@@ -171,8 +180,17 @@ export default function Home() {
           <p className="text-sm text-neutral-600 mt-6">검색 중...</p>
         )}
 
+        {searched && searchedQuery && !loading && (
+          <div className="w-full mt-5 pb-4 border-b border-neutral-800">
+            <RenderedContent
+              content={searchedQuery}
+              className="text-neutral-300"
+            />
+          </div>
+        )}
+
         {searched && !loading && (
-          <div className="w-full mt-6 flex flex-col gap-3">
+          <div className="w-full mt-4 flex flex-col gap-3">
             {results.length === 0 ? (
               <p className="text-neutral-600 text-center">
                 일치하는 문장이 없습니다.
@@ -182,7 +200,7 @@ export default function Home() {
                 <SentenceCard
                   key={s.id}
                   sentence={s}
-                  onUpdate={handleSearch}
+                  onUpdate={() => { if (searchedQuery) { searchSentences(searchedQuery).then(setResults); } }}
                   onClickContent={handleClickSentence}
                 />
               ))
