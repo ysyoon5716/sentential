@@ -139,7 +139,18 @@ export default function Home() {
         className="w-full max-w-2xl flex flex-col items-center pt-8"
       >
         <div className="w-full flex justify-between items-center mb-6">
-          <h1 className="font-bold tracking-tight text-2xl">
+          <h1
+            className="font-bold tracking-tight text-2xl cursor-pointer"
+            onClick={async () => {
+              setSearched(false);
+              setQuery("");
+              setSearchedQuery("");
+              setResults([]);
+              setSelectedSentence(null);
+              const recent = await getRecentSentences();
+              setRecentSentences(recent);
+            }}
+          >
             Sentential
           </h1>
           <button
@@ -225,6 +236,10 @@ export default function Home() {
               </div>
             )}
           </div>
+        )}
+
+        {searched && !loading && searchedQuery && (
+          <hr className="w-full mt-5 border-neutral-700" />
         )}
 
         {searched && !loading && (
