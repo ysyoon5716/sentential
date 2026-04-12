@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf /Users/ysyoon/Desktop/sentential/frontend/.git)",
+      "Bash(git rm:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

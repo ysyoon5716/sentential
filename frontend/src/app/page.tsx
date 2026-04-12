@@ -1,16 +1,30 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Sentence, searchSentences, createSentence } from "@/lib/api";
+import { useState, useCallback, useEffect } from "react";
+import { Sentence, searchSentences, createSentence, getRecentSentences } from "@/lib/api";
 import SentenceCard from "@/components/SentenceCard";
 
 export default function Home() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Sentence[]>([]);
+  const [recentSentences, setRecentSentences] = useState<Sentence[]>([]);
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+
+  const loadRecent = useCallback(async () => {
+    try {
+      const data = await getRecentSentences();
+      setRecentSentences(data);
+    } catch {
+      // silent fail for initial load
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRecent();
+  }, [loadRecent]);
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return;
@@ -39,6 +53,7 @@ export default function Home() {
         const data = await searchSentences(query);
         setResults(data);
       }
+      loadRecent();
     } catch {
       setMessage("저장 중 오류가 발생했습니다.");
     } finally {
@@ -56,14 +71,10 @@ export default function Home() {
   return (
     <main className="flex-1 flex flex-col items-center px-4">
       <div
-        className={`w-full max-w-2xl flex flex-col items-center transition-all duration-500 ${
-          searched ? "pt-8" : "justify-center flex-1"
-        }`}
+        className="w-full max-w-2xl flex flex-col items-center pt-8"
       >
         <h1
-          className={`font-bold tracking-tight transition-all duration-500 ${
-            searched ? "text-2xl mb-6" : "text-5xl mb-10"
-          }`}
+          className="font-bold tracking-tight text-2xl mb-6"
         >
           Sentential
         </h1>
@@ -107,6 +118,25 @@ export default function Home() {
                   key={s.id}
                   sentence={s}
                   onUpdate={handleSearch}
+                />
+              ))
+            )}
+          </div>
+        )}
+
+        {!searched && !loading && (
+          <div className="w-full mt-6 flex flex-col gap-3">
+            <p className="text-sm text-neutral-500">최근 수정한 문장</p>
+            {recentSentences.length === 0 ? (
+              <p className="text-neutral-600 text-center mt-4">
+                저장된 문장이 없습니다. 위 입력창에 문장을 입력하고 저장해 보세요.
+              </p>
+            ) : (
+              recentSentences.map((s) => (
+                <SentenceCard
+                  key={s.id}
+                  sentence={s}
+                  onUpdate={loadRecent}
                 />
               ))
             )}

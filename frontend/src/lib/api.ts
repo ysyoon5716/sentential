@@ -8,6 +8,12 @@ export interface Sentence {
   similarity?: number;
 }
 
+export async function getRecentSentences(): Promise<Sentence[]> {
+  const res = await fetch(`${API_URL}/api/sentences/recent`);
+  if (!res.ok) throw new Error("Fetch recent failed");
+  return res.json();
+}
+
 export async function searchSentences(query: string): Promise<Sentence[]> {
   const res = await fetch(
     `${API_URL}/api/sentences/search?q=${encodeURIComponent(query)}`

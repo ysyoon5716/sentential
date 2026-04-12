@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS sentences (
 );
 
 CREATE INDEX IF NOT EXISTS sentences_embedding_idx
-    ON sentences USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+    ON sentences USING hnsw (embedding vector_cosine_ops);

@@ -25,6 +25,13 @@ async def create_sentence(body: SentenceCreate, db: AsyncSession = Depends(get_d
     return sentence
 
 
+@router.get("/recent", response_model=list[SentenceResponse])
+async def list_recent_sentences(limit: int = 20, db: AsyncSession = Depends(get_db)):
+    stmt = select(Sentence).order_by(Sentence.updated_at.desc()).limit(limit)
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
 @router.get("/search", response_model=list[SentenceSearchResult])
 async def search_sentences(q: str, limit: int = 20, db: AsyncSession = Depends(get_db)):
     if not q.strip():
