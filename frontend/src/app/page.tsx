@@ -107,7 +107,8 @@ export default function Home() {
     setMessage("");
     try {
       const data = await getRandomSentence();
-      setResults([data]);
+      const similar = await searchSimilarSentences(data.id);
+      setResults(similar);
       setSearched(true);
       setSearchedQuery(data.content);
       setQuery("");
