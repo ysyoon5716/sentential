@@ -3,6 +3,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 export interface Sentence {
   id: number;
   content: string;
+  source?: string | null;
   created_at: string;
   updated_at: string;
   similarity?: number;
@@ -69,11 +70,14 @@ export async function searchSimilarSentences(id: number): Promise<Sentence[]> {
   return res.json();
 }
 
-export async function createSentence(content: string): Promise<Sentence> {
+export async function createSentence(
+  content: string,
+  source?: string | null
+): Promise<Sentence> {
   const res = await apiFetch("/api/sentences", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, source }),
   });
   if (!res.ok) throw new Error("Create failed");
   return res.json();
@@ -81,12 +85,13 @@ export async function createSentence(content: string): Promise<Sentence> {
 
 export async function updateSentence(
   id: number,
-  content: string
+  content: string,
+  source?: string | null
 ): Promise<Sentence> {
   const res = await apiFetch(`/api/sentences/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, source }),
   });
   if (!res.ok) throw new Error("Update failed");
   return res.json();

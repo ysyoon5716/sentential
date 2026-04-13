@@ -14,6 +14,7 @@ interface Props {
 export default function SentenceCard({ sentence, onUpdate, onClickContent }: Props) {
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(sentence.content);
+  const [editSource, setEditSource] = useState(sentence.source ?? "");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -26,7 +27,7 @@ export default function SentenceCard({ sentence, onUpdate, onClickContent }: Pro
   async function handleSave() {
     setLoading(true);
     try {
-      await updateSentence(sentence.id, editContent);
+      await updateSentence(sentence.id, editContent, editSource);
       setEditing(false);
       onUpdate();
     } finally {
@@ -53,6 +54,13 @@ export default function SentenceCard({ sentence, onUpdate, onClickContent }: Pro
             onChange={(e) => setEditContent(e.target.value)}
             className="w-full bg-neutral-900 border border-neutral-700 rounded p-2 text-white resize-none focus:outline-none focus:border-neutral-500"
             rows={2}
+          />
+          <input
+            type="text"
+            value={editSource}
+            onChange={(e) => setEditSource(e.target.value)}
+            placeholder="출처 (선택)"
+            className="w-full bg-neutral-900 border border-neutral-700 rounded p-2 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-500"
           />
           <div className="flex gap-2 justify-end">
             <button
@@ -103,6 +111,11 @@ export default function SentenceCard({ sentence, onUpdate, onClickContent }: Pro
             </button>
           </div>
         </div>
+      )}
+      {!editing && sentence.source && (
+        <p className="text-xs text-neutral-500 mt-2">
+          출처: {sentence.source}
+        </p>
       )}
       {sentence.similarity !== undefined && (
         <p className="text-xs text-neutral-600 mt-2">

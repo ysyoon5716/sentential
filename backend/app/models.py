@@ -14,6 +14,7 @@ class Sentence(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    source: Mapped[str | None] = mapped_column(Text, nullable=True)
     embedding = mapped_column(Vector(1024))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

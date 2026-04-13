@@ -10,6 +10,7 @@ import { HiArrowUpTray, HiClipboardDocument, HiClipboardDocumentCheck } from "re
 
 export default function Home() {
   const [query, setQuery] = useState("");
+  const [source, setSource] = useState("");
   const [results, setResults] = useState<Sentence[]>([]);
   const [recentSentences, setRecentSentences] = useState<Sentence[]>([]);
   const [searched, setSearched] = useState(false);
@@ -81,11 +82,13 @@ export default function Home() {
   async function handleSave() {
     if (!query.trim()) return;
     const q = query.trim();
+    const src = source.trim() || null;
     setSaving(true);
     setMessage("");
     try {
-      await createSentence(q);
+      await createSentence(q, src);
       setQuery("");
+      setSource("");
       if (searched) {
         const data = await searchSentences(q);
         setResults(data);
@@ -160,24 +163,23 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="w-full flex gap-2">
+        <div className="w-full flex flex-wrap gap-2">
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="문장을 입력하세요..."
-            className="flex-1 min-w-0 bg-transparent border border-neutral-700 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400 transition-colors"
+            className="flex-1 min-w-0 basis-full sm:basis-0 bg-transparent border border-neutral-700 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400 transition-colors"
             autoFocus
           />
-          <button
-            onClick={handleRandom}
-            disabled={loading}
-            className="px-3 py-3 border border-neutral-700 rounded-lg text-neutral-400 hover:text-white hover:border-neutral-400 transition-colors disabled:opacity-30 shrink-0"
-            title="랜덤 검색"
-          >
-            <GiPerspectiveDiceSixFacesRandom className="w-5 h-5" />
-          </button>
+          <input
+            type="text"
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            placeholder="출처 (선택)"
+            className="flex-1 min-w-0 basis-0 sm:max-w-[200px] bg-transparent border border-neutral-700 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400 transition-colors"
+          />
           <button
             onClick={handleSave}
             disabled={saving || !query.trim()}
@@ -185,6 +187,14 @@ export default function Home() {
             title="저장"
           >
             <HiArrowUpTray className="w-5 h-5" />
+          </button>
+          <button
+            onClick={handleRandom}
+            disabled={loading}
+            className="px-3 py-3 border border-neutral-700 rounded-lg text-neutral-400 hover:text-white hover:border-neutral-400 transition-colors disabled:opacity-30 shrink-0"
+            title="랜덤 검색"
+          >
+            <GiPerspectiveDiceSixFacesRandom className="w-5 h-5" />
           </button>
         </div>
 

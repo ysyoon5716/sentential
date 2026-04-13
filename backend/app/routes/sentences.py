@@ -20,10 +20,16 @@ router = APIRouter(
 )
 
 
+def _norm(s: str | None) -> str | None:
+    return s.strip() if s and s.strip() else None
+
+
 @router.post("", response_model=SentenceResponse, status_code=201)
 async def create_sentence(body: SentenceCreate, db: AsyncSession = Depends(get_db)):
     embedding = await get_embedding(body.content)
-    sentence = Sentence(content=body.content, embedding=embedding)
+    sentence = Sentence(
+        content=body.content, source=_norm(body.source), embedding=embedding
+    )
     db.add(sentence)
     await db.commit()
     await db.refresh(sentence)
@@ -40,7 +46,7 @@ async def list_recent_sentences(limit: int = 20, db: AsyncSession = Depends(get_
 @router.get("/random", response_model=SentenceResponse)
 async def get_random_sentence(db: AsyncSession = Depends(get_db)):
     stmt = text(
-        "SELECT id, content, created_at, updated_at FROM sentences ORDER BY RANDOM() LIMIT 1"
+        "SELECT id, content, source, created_at, updated_at FROM sentences ORDER BY RANDOM() LIMIT 1"
     )
     result = await db.execute(stmt)
     row = result.mappings().first()
@@ -58,7 +64,7 @@ async def search_sentences(q: str, limit: int = 20, db: AsyncSession = Depends(g
     embedding_str = "[" + ",".join(str(v) for v in query_embedding) + "]"
 
     stmt = text("""
-        SELECT id, content, created_at, updated_at,
+        SELECT id, content, source, created_at, updated_at,
                1 - (embedding <=> CAST(:embedding AS vector)) AS similarity
         FROM sentences
         ORDER BY embedding <=> CAST(:embedding AS vector)
@@ -79,7 +85,7 @@ async def search_similar_sentences(
         raise HTTPException(status_code=404, detail="Sentence not found")
 
     stmt = text("""
-        SELECT id, content, created_at, updated_at,
+        SELECT id, content, source, created_at, updated_at,
                1 - (embedding <=> (SELECT embedding FROM sentences WHERE id = :sentence_id)) AS similarity
         FROM sentences
         WHERE id != :sentence_id
@@ -100,8 +106,10 @@ async def update_sentence(
     if not sentence:
         raise HTTPException(status_code=404, detail="Sentence not found")
 
+    if sentence.content != body.content:
+        sentence.embedding = await get_embedding(body.content)
     sentence.content = body.content
-    sentence.embedding = await get_embedding(body.content)
+    sentence.source = _norm(body.source)
     await db.commit()
     await db.refresh(sentence)
     return sentence
